@@ -263,7 +263,6 @@ void updateWindowSize(CircularBuffer *leftBuf, CircularBuffer *rightBuf) {
 /**************************************
  *      *FUNCION PARA IMPRIMIR
  *************************************/
-// TODO Cambiar por Ncurses
 
 void printState(char variable, int value) {
     static const char* messages[] = {
