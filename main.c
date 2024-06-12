@@ -1,27 +1,23 @@
 /**
- * @file tarea2.c
- * @brief Sincronización entre Procesos - Teoria de Sistemas Operativos - ELO321
- *
- * @details
- * El objetivo de este código es proporcionar una solución a la problemática de sincronización de procesos.
- * La situación modelada consiste en un puente de dos sentidos, que actúa como un recurso compartido, y dos
- * colas en cada extremo del puente, llenas de personas que quieren atravesarlo.
- *
- * Los individuos se trasladan en grupos de tamaño variable, adaptándose al tamaño de las colas en cada lado
- * del puente. La tasa de llegada de nuevos transeúntes es aleatoria y tiene un promedio diferente para cada
- * lado, lo que hace necesaria la capacidad de ajustar el tamaño de los grupos (ventana).
- *
- * En este código, se hace uso de enteros atómicos para ciertos contadores. Dado que el compilador GCC 4.8.5
- * en Aragorn no contiene la librería <stdatomic.h>, se utilizaron macros para implementarlos.
- *
- * Las funciones principales del código se encuentran en los hilos recorrerEstacionamiento y newVehiculo, mientras
- * que las funciones auxiliares están descritas en "funciones.h". Las funciones de los hilos son de diseño propio.
- * Para algunas funciones auxiliares, como las de impresión o el manejo de tiempos de nanosegundos, se recurrió a
- * información y código encontrado en Internet y a la asistencia de ChatGPT.
- *
- * @date 11 de junio de 2024
- * @author Julio López
- */
+ * @file tarea2.c
+ * @brief Sincronización entre Procesos - Teoria de Sistemas Operativos - ELO321
+ *
+ * @details
+ * El objetivo de este código es proporcionar una solución a la problemática de sincronización de procesos para un estacionamiento con una sola calle de entrada y salida. La situación modelada consiste en vehículos que desean ingresar o salir del estacionamiento, utilizando la misma calle de un solo sentido, lo que requiere una gestión adecuada para evitar conflictos y asegurar un tránsito fluido.
+ *
+ * Los vehículos se trasladan en un solo sentido a la vez, ya sea entrando o saliendo del estacionamiento. La llegada y salida de vehículos es aleatoria, lo cual puede causar la formación de colas en ambos sentidos. La solución implementada asegura que no se producirá un bloqueo indefinido (Deadlock) ni inanición (Starvation) de vehículos en espera.
+ *
+ * Para manejar las secciones críticas y la sincronización entre procesos, se hace uso de técnicas como semáforos y variables de condición. El retardo en el paso de los vehículos por la calle de entrada/salida se simula para representar el tiempo necesario para completar la operación. Además, se garantiza que los vehículos en el sentido opuesto no esperen indefinidamente.
+ *
+ * La visualización del estado del estacionamiento se realiza utilizando la biblioteca "Ncurses". Esta biblioteca permite mostrar en tiempo real la cantidad de vehículos en espera de entrar o salir, así como el número de vehículos que han ingresado o salido del estacionamiento. El propósito es brindar una representación clara del estado del sistema y el avance de los vehículos.
+ *
+ * Las funciones principales del código incluyen la gestión de colas de espera, la sincronización del paso de vehículos y la actualización de la visualización en pantalla. Las funciones auxiliares están agrupadas en un archivo separado para mantener la estructura del código clara y modular.
+ *
+ * @date 11 de junio de 2024
+ * @authors
+ * Julio López
+ * Hector Cepeda
+ */
 
 #include <time.h>
 #include "funciones.h"
