@@ -3,15 +3,29 @@
  * @brief Sincronización entre Procesos - Teoria de Sistemas Operativos - ELO321
  *
  * @details
- * El objetivo de este código es proporcionar una solución a la problemática de sincronización de procesos para un estacionamiento con una sola calle de entrada y salida. La situación modelada consiste en vehículos que desean ingresar o salir del estacionamiento, utilizando la misma calle de un solo sentido, lo que requiere una gestión adecuada para evitar conflictos y asegurar un tránsito fluido.
+ * El objetivo de este código es proporcionar una solución a la problemática de sincronización de procesos para un
+ * estacionamiento con una sola calle de entrada y salida. La situación modelada consiste en vehículos que desean
+ * ingresar o salir del estacionamiento, utilizando la misma calle de un solo sentido, lo que requiere una gestión
+ * adecuada para evitar conflictos y asegurar un tránsito fluido.
  *
- * Los vehículos se trasladan en un solo sentido a la vez, ya sea entrando o saliendo del estacionamiento. La llegada y salida de vehículos es aleatoria, lo cual puede causar la formación de colas en ambos sentidos. La solución implementada asegura que no se producirá un bloqueo indefinido (Deadlock) ni inanición (Starvation) de vehículos en espera.
+ * Los vehículos se trasladan en un solo sentido a la vez, ya sea entrando o saliendo del estacionamiento.
+ * La llegada y salida de vehículos es aleatoria, lo cual puede causar la formación de colas en ambos sentidos.
+ * La solución implementada asegura que no se producirá un bloqueo indefinido (Deadlock) ni inanición (Starvation)
+ * de vehículos en espera.
  *
- * Para manejar las secciones críticas y la sincronización entre procesos, se hace uso de técnicas como semáforos y variables de condición. El retardo en el paso de los vehículos por la calle de entrada/salida se simula para representar el tiempo necesario para completar la operación. Además, se garantiza que los vehículos en el sentido opuesto no esperen indefinidamente.
+ * Para manejar las secciones críticas y la sincronización entre procesos, se hace uso de técnicas como semáforos
+ * y variables de condición. El retardo en el paso de los vehículos por la calle de entrada/salida se simula para
+ * representar el tiempo necesario para completar la operación. Además, se garantiza que los vehículos en el sentido
+ * opuesto no esperen indefinidamente.
  *
- * La visualización del estado del estacionamiento se realiza utilizando la biblioteca "Ncurses". Esta biblioteca permite mostrar en tiempo real la cantidad de vehículos en espera de entrar o salir, así como el número de vehículos que han ingresado o salido del estacionamiento. El propósito es brindar una representación clara del estado del sistema y el avance de los vehículos.
+ * La visualización del estado del estacionamiento se realiza utilizando la biblioteca "Ncurses". Esta biblioteca
+ * permite mostrar en tiempo real la cantidad de vehículos en espera de entrar o salir, así como el número de
+ * vehículos que han ingresado o salido del estacionamiento. El propósito es brindar una representación clara
+ * del estado del sistema y el avance de los vehículos.
  *
- * Las funciones principales del código incluyen la gestión de colas de espera, la sincronización del paso de vehículos y la actualización de la visualización en pantalla. Las funciones auxiliares están agrupadas en un archivo separado para mantener la estructura del código clara y modular.
+ * Las funciones principales del código incluyen la gestión de colas de espera, la sincronización del paso de vehículos
+ * y la actualización de la visualización en pantalla. Las funciones auxiliares están agrupadas en un archivo separado
+ * para mantener la estructura del código clara y modular.
  *
  * @date 11 de junio de 2024
  * @authors
@@ -21,12 +35,14 @@
 
 #include <time.h>
 #include "funciones.h"
+#include <curses.h>
 
 //Constantes
 #define BUFFER_SIZE         20
 #define PARKING_SIZE        10
 #define WINDOW_SIZE         3
-#define PARKING_SPEED       50000
+#define PARKING_SPEED       500000
+
 
 // Esta variable global almacenará el tiempo de inicio
 struct timespec start_time;
@@ -49,7 +65,7 @@ void* recorrerEstacionamiento(void* arg) {
     int value;
     int half_time = (int)(PARKING_SPEED / 2);
     my_sleep(3*PARKING_SPEED);
-    while(ATOMIC_LOAD(&contador_out) <= 150) {
+    while(ATOMIC_LOAD(&contador_out) <= 50) {
         sem_wait(&parkingSemaphore);   // ! Esperar a que el estacionamiento esté disponible.
 
         //? ENTRADA AL ESTACIONAMIENTO *//
@@ -59,12 +75,12 @@ void* recorrerEstacionamiento(void* arg) {
                 sem_wait(&leftSemaphore);               // ? Se pausa leftSemaphore
                 my_sleep(half_time);                    // Saliendo de la cola
                 value = removeFromBuffer(leftBuffer);   // Sale de la cola.
-                printState('a', value);                 // TODO reemplazar con Ncurses
+                printState('a', value);
                 sem_post(&leftSemaphore);               // ? Se libera leftSemaphore
                 my_sleep(half_time);                    // Entrando al estacionamiento
                 addToBuffer(parkingBuffer, value);      // Entra al estacionamiento.
                 parkingBuffer->tail = (parkingBuffer->tail + 1) % (parkingBuffer->size);
-                printState('A', value);                 // TODO reemplazar con Ncurses
+                printState('A', value);
             }
 
             //* LADO DERECHO *//
@@ -72,12 +88,12 @@ void* recorrerEstacionamiento(void* arg) {
                 sem_wait(&rightSemaphore);              // ? Se pausa rightSemaphore
                 my_sleep(half_time);                    // Saliendo de la cola
                 value = removeFromBuffer(rightBuffer);  // Sale alguien de la cola.
-                printState('b', value);                 // TODO reemplazar con Ncurses
+                printState('b', value);
                 sem_post(&rightSemaphore);              // ? Se libera rightSemaphore
                 my_sleep(half_time);
                 addToBuffer(parkingBuffer, value);      // Entra al estacionamiento.
                 parkingBuffer->tail = (parkingBuffer->tail + 1) % (parkingBuffer->size);
-                printState('B', value);                 // TODO reemplazar con Ncurses
+                printState('B', value);
             }
         }
 
@@ -86,7 +102,7 @@ void* recorrerEstacionamiento(void* arg) {
         while(!isBufferEmpty(parkingBuffer)) {
             my_sleep(PARKING_SPEED);                    // Vehiculo moviéndose/saliendo del estacionamiento.
             value = removeFromBuffer(parkingBuffer);
-            printState('O', value);                     // TODO reemplazar con Ncurses
+            printState('O', value);
         }
 
         // Restablece las posiciones del estacionamiento para mostrarlo bien.                                                                                                                      parkingBuffer->head = 0;
@@ -113,7 +129,7 @@ void* newVehiculo(void* arg) {
             my_sleep(waitingTime);
             sem_wait(&leftSemaphore);       // Se pausa el semáforo. (P)
             addToBuffer(leftBuffer, 1);     // Se añade vehiculo al buffer.      
-            printState('l', -1);            // TODO reemplazar con Ncurses                                                                                    printState('l', -1);
+            printState('l', -1);
             sem_post(&leftSemaphore);       // Se libera el semáforo. (V)
         }
 
@@ -123,7 +139,7 @@ void* newVehiculo(void* arg) {
             my_sleep(waitingTime);
             sem_wait(&rightSemaphore);      // Se pausa el semáforo. (P)
             addToBuffer(rightBuffer, 1);    // Se añade vehiculo al buffer.
-            printState('r', -1);            // TODO reemplazar con Ncurses
+            printState('r', -1);
             sem_post(&rightSemaphore);      // Se libera el semáforo. (V)
         }
     }
@@ -131,6 +147,12 @@ void* newVehiculo(void* arg) {
 }
 
 int main() {
+    // Inicializar ncurses
+    initscr();
+    cbreak();
+    noecho();
+    curs_set(FALSE);
+
     // Inicializar variables globales
     dir = 0;
     pthread_t leftIn, rightIn, puente;
@@ -177,6 +199,9 @@ int main() {
     sem_destroy(&rightSemaphore);
     sem_destroy(&parkingSemaphore);
     pthread_mutex_destroy(&printMutex);
+
+    // Terminar ncurses
+    endwin();
 
     return 0;
 }
@@ -249,36 +274,56 @@ void printState(char variable, int value) {
         ['A'] = "   Entra alguien al puente desde la cola izquierda.\n",
         ['b'] = "   Sale alguien de la cola derecha.\n",
         ['B'] = "   Entra alguien al puente desde la cola derecha.\n",
-        ['O'] = "   Una persona cruzó el puente.\n",
-        ['l'] = "   Una nueva persona espera en la cola izquierda\n",
-        ['r'] = "   Una nueva persona espera en la cola derecha\n",
+        ['O'] = "   Un vehículo cruzó.\n",
+        ['l'] = "   Una nuevo vehículo espera en la cola izquierda\n",
+        ['r'] = "   Una nuevo vehículo espera en la cola derecha\n",
         ['*'] = "   Nadie nuevo sale de las colas.\n",
         ['+'] = "   Nadie nuevo entra al puente.\n"
     };
-
     pthread_mutex_lock(&printMutex);  // Adquirir el mutex antes de imprimir
 
-    printBuffersAndDirection();
-    if(variable == 'O' && value == 1) {
-        ATOMIC_ADD(&contador_out, 1); //contador_out++
-    }
+    // Limpiar la pantalla
+    clear();
 
+    // Imprimir buffers y dirección
+    printBuffersAndDirection();
+
+    // Imprimir el estado actual
+    if (variable == 'O' && value == 1) {
+        ATOMIC_ADD(&contador_out, 1); // contador_out++
+    }
     const char* message = messages[(int)variable];
+
+    // Mover el cursor a la fila 10, columna 0
+    move(10, 0);
     if (value)
-        printf("%s", message);
+        printw("%s", message);
     else
-        printf("%s", (variable == 'a' || variable == 'b') ? messages['*'] : messages['+']);
+        printw("%s", (variable == 'a' || variable == 'b') ? messages['*'] : messages['+']);
+
+    // Refrescar la pantalla para mostrar los cambios
+    refresh();
 
     pthread_mutex_unlock(&printMutex);  // Liberar el mutex después de imprimir
 }
 
 void printBuffersAndDirection() {
-    printf("T:%8.4fs  Dir:%d  Window:%2d  Cruzando:%2d  Done:%3d", (get_time() * 10), dir, ATOMIC_LOAD(&window), countBuffer(parkingBuffer), ATOMIC_LOAD(&contador_out));
-    printf("   Wait:%2d ", countBuffer(leftBuffer));
+    // Mover el cursor a la posición inicial (fila 0, columna 0)
+    move(0, 0);
+
+    // Imprimir información general
+    printw("T:%8.4fs  Dir:%d  Window:%2d  Cruzando:%2d  Done:%3d", (get_time() * 10), dir, ATOMIC_LOAD(&window), countBuffer(parkingBuffer), ATOMIC_LOAD(&contador_out));
+    
+    // Imprimir la cola izquierda
+    printw("   Wait:%2d ", countBuffer(leftBuffer));
     printBuffer2(leftBuffer);
-    printf("   ");
+    
+    // Imprimir el buffer del estacionamiento
+    printw("   ");
     (dir == 1) ? printBuffer2(parkingBuffer) : printBuffer(parkingBuffer);
-    printf("   ");
+    
+    // Imprimir la cola derecha
+    printw("   ");
     printBuffer(rightBuffer);
-    printf(" Wait:%2d", countBuffer(rightBuffer));
+    printw(" Wait:%2d\n", countBuffer(rightBuffer));
 }

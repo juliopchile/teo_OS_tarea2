@@ -1,9 +1,21 @@
 /**
- * @file funciones.h
- * @brief Declaraciones para funciones útiles.
- * @date 4 de junio de 2023
- * @authors Julio López
- */
+ * @file funciones.h
+ * @brief Declaraciones para funciones útiles.
+ *
+ * @details
+ * Este archivo contiene las declaraciones de las funciones utilizadas en las 
+ * operaciones sobre el buffer circular y otras utilidades requeridas por el programa.
+ *
+ * @date 4 de junio de 2023 (creación)
+ * @version 1.1
+ * @date 11 de junio de 2024 (última actualización)
+ * @authors
+ * Julio López
+ *
+ * @history
+ * Versión 1.0 - 4 de junio de 2023 - Creación del archivo.
+ * Versión 1.1 - 11 de junio de 2024 - Actualización y modificación de funciones para implementar ncurses.
+ */
 
 #ifndef FUNCIONES_H
 #define FUNCIONES_H
@@ -16,6 +28,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+
+#define OCCUPIED_CHAR       '🚗'
+#define EMPTY_CHAR          '_'
 
 /* Esto se hace porque Aragorn no incluye <stdatomic.h>*/
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
