@@ -11,7 +11,7 @@
  * Los vehículos se trasladan en un solo sentido a la vez, ya sea entrando o saliendo del estacionamiento.
  * La llegada y salida de vehículos es aleatoria, lo cual puede causar la formación de colas en ambos sentidos.
  * La solución implementada asegura que no se producirá un bloqueo indefinido (Deadlock) ni inanición (Starvation)
- * de vehículos en espera.
+ * de vehículos en espera. Esto se logra al adaptar el flujo de vehiculos dinámicamente.
  *
  * Para manejar las secciones críticas y la sincronización entre procesos, se hace uso de técnicas como semáforos
  * y variables de condición. El retardo en el paso de los vehículos por la calle de entrada/salida se simula para
@@ -32,6 +32,9 @@
  * Julio López
  * Hector Cepeda
  */
+
+// ! CONSIDERACIONES
+// ? Hay un bug visual donde los vehículos de la izquierda aparecen desde la mitad del camino. Solo es visual.
 
 #include <time.h>
 #include "funciones.h"
@@ -312,7 +315,8 @@ void printBuffersAndDirection() {
     move(0, 0);
 
     // Imprimir información general
-    printw("T:%8.4fs  Dir:%d  Window:%2d  Cruzando:%2d  Done:%3d", (get_time() * 10), dir, ATOMIC_LOAD(&window), countBuffer(parkingBuffer), ATOMIC_LOAD(&contador_out));
+    printw("T:%8.4fs  Dir:%d  Window:%2d  Cruzando:%2d  Done:%3d",
+            (get_time() * 10), dir, ATOMIC_LOAD(&window), countBuffer(parkingBuffer), ATOMIC_LOAD(&contador_out));
     
     // Imprimir la cola izquierda
     printw("   Wait:%2d ", countBuffer(leftBuffer));

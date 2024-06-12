@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#define OCCUPIED_CHAR       '🚗'
+#define OCCUPIED_CHAR       'X'
 #define EMPTY_CHAR          '_'
 
 /* Esto se hace porque Aragorn no incluye <stdatomic.h>*/
