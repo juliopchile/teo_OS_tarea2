@@ -33,9 +33,6 @@
  * Hector Cepeda
  */
 
-// ! CONSIDERACIONES
-// ? Hay un bug visual donde los vehículos de la izquierda aparecen desde la mitad del camino. Solo es visual.
-
 #include <time.h>
 #include "funciones.h"
 #include <curses.h>
@@ -107,9 +104,6 @@ void* recorrerEstacionamiento(void* arg) {
             value = removeFromBuffer(parkingBuffer);
             printState('O', value);
         }
-
-        // Restablece las posiciones del estacionamiento para mostrarlo bien.                                                                                                                      parkingBuffer->head = 0;
-        parkingBuffer->tail = 0;
 
         //? CAMBIAR SENTIDO DEL TRAFICO *//
         dir = (dir == 1) ? 2 : 1;       // 1 es izquierda, 2 es derecha
