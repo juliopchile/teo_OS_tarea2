@@ -33,15 +33,23 @@
  * Hector Cepeda
  */
 
+#include <string.h>
 #include <time.h>
-#include "funciones.h"
 #include <curses.h>
+#include "funciones.h"
 
 //Constantes
 #define BUFFER_SIZE         20
 #define PARKING_SIZE        10
 #define WINDOW_SIZE         3
-#define PARKING_SPEED       500000
+#define PARKING_SPEED       250000
+
+// Para el manejo de mensajes con un buffer
+static char* messageBuffer[MESSAGE_BUFFER_SIZE];
+static int messageIndex = 0;
+static int messageCount = 0;
+void initMessageBuffer();
+void freeMessageBuffer();
 
 
 // Esta variable global almacenará el tiempo de inicio
@@ -150,6 +158,9 @@ int main() {
     noecho();
     curs_set(FALSE);
 
+    // Inicializar el buffer de mensajes
+    initMessageBuffer();
+
     // Inicializar variables globales
     dir = 0;
     pthread_t leftIn, rightIn, puente;
@@ -168,9 +179,6 @@ int main() {
     int initial_right_amount = 4 + rand() % 3;
     for (int i = 0; i < initial_right_amount; i++)
         addToBuffer(rightBuffer, 1);
-    int initial_parking_amount = 4 + rand() % 3;
-    for (int i = 0; i < initial_parking_amount; i++)
-        addToBuffer(parkingBuffer, 1);
 
     // Inicializar semáforos y mutex
     sem_init(&leftSemaphore, 0, 1);
@@ -196,6 +204,9 @@ int main() {
     sem_destroy(&rightSemaphore);
     sem_destroy(&parkingSemaphore);
     pthread_mutex_destroy(&printMutex);
+
+    // Liberar el buffer de mensajes
+    freeMessageBuffer();
 
     // Terminar ncurses
     endwin();
@@ -266,15 +277,15 @@ void updateWindowSize(CircularBuffer *leftBuf, CircularBuffer *rightBuf) {
 
 void printState(char variable, int value) {
     static const char* messages[] = {
-        ['a'] = "   Sale alguien de la cola izquierda.\n",
-        ['A'] = "   Entra alguien al puente desde la cola izquierda.\n",
-        ['b'] = "   Sale alguien de la cola derecha.\n",
-        ['B'] = "   Entra alguien al puente desde la cola derecha.\n",
-        ['O'] = "   Un vehículo cruzó.\n",
-        ['l'] = "   Una nuevo vehículo espera en la cola izquierda\n",
-        ['r'] = "   Una nuevo vehículo espera en la cola derecha\n",
-        ['*'] = "   Nadie nuevo sale de las colas.\n",
-        ['+'] = "   Nadie nuevo entra al puente.\n"
+        ['a'] = "   Sale alguien de la cola izquierda.",
+        ['A'] = "   Entra alguien al puente desde la cola izquierda.",
+        ['b'] = "   Sale alguien de la cola derecha.",
+        ['B'] = "   Entra alguien al puente desde la cola derecha.",
+        ['O'] = "   Un vehículo cruzó.",
+        ['l'] = "   Una nuevo vehículo espera en la cola izquierda",
+        ['r'] = "   Una nuevo vehículo espera en la cola derecha",
+        ['*'] = "   Nadie nuevo sale de las colas.",
+        ['+'] = "   Nadie nuevo entra al puente."
     };
     pthread_mutex_lock(&printMutex);  // Adquirir el mutex antes de imprimir
 
@@ -284,18 +295,24 @@ void printState(char variable, int value) {
     // Imprimir buffers y dirección
     printBuffersAndDirection();
 
-    // Imprimir el estado actual
+    // Almacenar el mensaje actual en el buffer circular
     if (variable == 'O' && value == 1) {
         ATOMIC_ADD(&contador_out, 1); // contador_out++
     }
     const char* message = messages[(int)variable];
+    snprintf(messageBuffer[messageIndex], 256, "%s", message);
 
-    // Mover el cursor a la fila 10, columna 0
-    move(10, 0);
-    if (value)
-        printw("%s", message);
-    else
-        printw("%s", (variable == 'a' || variable == 'b') ? messages['*'] : messages['+']);
+    // Incrementar el índice del buffer circular
+    messageIndex = (messageIndex + 1) % MESSAGE_BUFFER_SIZE;
+    if (messageCount < MESSAGE_BUFFER_SIZE) {
+        messageCount++;
+    }
+
+    // Mostrar los últimos N mensajes
+    for (int i = 0; i < messageCount; i++) {
+        int index = (messageIndex + i) % MESSAGE_BUFFER_SIZE;
+        mvprintw(10 + i, 0, "%s", messageBuffer[index]);
+    }
 
     // Refrescar la pantalla para mostrar los cambios
     refresh();
@@ -323,4 +340,17 @@ void printBuffersAndDirection() {
     printw("   ");
     printBuffer(rightBuffer);
     printw(" Wait:%2d\n", countBuffer(rightBuffer));
+}
+
+void initMessageBuffer() {
+    for (int i = 0; i < MESSAGE_BUFFER_SIZE; i++) {
+        messageBuffer[i] = malloc(256 * sizeof(char));
+        strcpy(messageBuffer[i], "");
+    }
+}
+
+void freeMessageBuffer() {
+    for (int i = 0; i < MESSAGE_BUFFER_SIZE; i++) {
+        free(messageBuffer[i]);
+    }
 }

@@ -31,6 +31,8 @@
 
 #define OCCUPIED_CHAR       'X'
 #define EMPTY_CHAR          '_'
+#define MESSAGE_BUFFER_SIZE 25  // Puede ajustarse este valor según sus necesidades
+
 
 /* Esto se hace porque Aragorn no incluye <stdatomic.h>*/
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
@@ -118,7 +120,7 @@ int removeFromBuffer(CircularBuffer *cb);
 
 
 /**
- * @brief Imprime el contenido del buffer circular.
+ * @brief Muestra el contenido del buffer circular.
  *
  * @param cb Un puntero al buffer circular
  */
@@ -126,7 +128,7 @@ void printBuffer(CircularBuffer *cb);
 
 
 /**
- * @brief Imprime el contenido del buffer circular en sentido opuesto.
+ * @brief Muestra el contenido del buffer circular en sentido opuesto.
  *
  * @param cb Un puntero al buffer circular
  */
@@ -136,7 +138,7 @@ void printBuffer2(CircularBuffer *cb);
 /**
  * @brief Vacía la cola correspondiente.
  *
- * Esta función vacía la cola al permitirle a los transeúntes transitar por el puente.
+ * Esta función vacía la cola al permitirle a los vehículos transitar por la salida.
  *
  */
 void* recorrerEstacionamiento(void*);
@@ -145,7 +147,7 @@ void* recorrerEstacionamiento(void*);
 /**
  * @brief Representa a la llegada de gente.
  *
- * Tras un periodo de tiempo se añade un nuevo transeúnte a la cola designada por el argumento de entrada "arg".
+ * Tras un periodo de tiempo se añade un nuevo vehículo a la cola designada por el argumento de entrada "arg".
  *
  * @param arg Id del buffer, indica si es izquierda o derecha.
  * @return void*
@@ -154,13 +156,13 @@ void* newVehiculo(void* arg);
 
 
 /**
- * @brief Muestra en la consola el estado actual del puente y las colas
+ * @brief Muestra en la consola el estado actual del parking y las colas
  */
 void printState(char variable, int value);
 
 
 /**
- * @brief Función auxiliar para mostrar en la consola
+ * @brief Función auxiliar para mostrar en la consola con ncurses
  */
 void printBuffersAndDirection();
 
