@@ -1,0 +1,6 @@
+# Compiled object files
+main.o
+funciones.o
+
+# Executable files
+main
