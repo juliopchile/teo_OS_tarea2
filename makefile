@@ -18,3 +18,6 @@ $(EXEC): $(OBJ)
 
 clean:
 	rm -f $(EXEC) $(OBJ)
+
+run: $(EXEC)
+	./$(EXEC)
