@@ -4,3 +4,6 @@ funciones.o
 
 # Executable files
 main
+
+# VsCode
+/.vscode/
