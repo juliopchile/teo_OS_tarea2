@@ -1,9 +1,10 @@
-# Compiled object files
-main.o
-funciones.o
+# VS Code
+.vscode/
 
-# Executable files
+# Objetos
+*.o
+
+# Executables
+*.exe
+funciones
 main
-
-# VsCode
-/.vscode/
